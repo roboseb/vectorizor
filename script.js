@@ -5,15 +5,15 @@ const ctx = canvas.getContext("2d");
 ctx.canvas.width = window.innerHeight - 20;
 ctx.canvas.height = window.innerHeight / 2;
 
-ctx.lineWidth = 10;
-ctx.lineCap = 'round';
+ctx.lineWidth = 4;
+ctx.lineCap = 'butt';
 
 let oldX = canvas.width / 2;
 let oldY = canvas.height / 2;
 
 let moveArray = [
-    { type: 'stroke', x: 0, y: 0, distance: Math.hypot(0 - oldX, 0 - oldY)},
-    { type: 'stroke', x: 50, y: 200, distance: Math.hypot(50 - oldX, 200 - oldY)},
+    { type: 'stroke', x: 0, y: 0, distance: Math.hypot(0 - oldX, 0 - oldY) },
+    // { type: 'stroke', x: 50, y: 200, distance: Math.hypot(50 - oldX, 200 - oldY)},
     // { type: 'stroke', x: 400, y: 75, distance: Math.hypot(400 - oldX, 75 - oldY)},
 ];
 
@@ -58,52 +58,69 @@ animateBtn.addEventListener('click', () => {
 });
 
 let currentMove = 0;
-let animatedFrames = 0;
-let drawnLength = 0;
+const lineSpeed = 12;
+
+ctx.lineDashOffset = moveArray[0].distance * -1;
 
 // Start running animation.
 const animate = () => {
 
-    // Stop animating once all lines have been drawn.
-    if (animatedFrames == moveArray.length * 60) {
-        console.log('done');
-        return;
-    };
+    let lastLineLength = moveArray[currentMove].distance;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     oldX = canvas.width / 2;
     oldY = canvas.height / 2;
 
-    // ctx.lineDashOffset = 500;
-    // ctx.setLineDash([500, 500]);
+    if (lastLineLength - Math.abs(ctx.lineDashOffset + moveArray[0].distance) < lineSpeed) {
+        console.log('not enough left')
+        console.log(lastLineLength - Math.abs(ctx.lineDashOffset + moveArray[0].distance));
+        ctx.lineDashOffset -= lastLineLength - Math.abs(ctx.lineDashOffset + moveArray[0].distance);
+    } else {
+        ctx.lineDashOffset -= lineSpeed;
+    }
 
-
-    for (let i = 0; i < currentMove; i++) {
+    // Draw every move saved in the moveArray.
+    for (let i = 0; i <= currentMove; i++) {
 
         if (i > moveArray.length - 1) break;
-
-        const lastLineLength = moveArray[i].distance;
-
-        drawnLength += lastLineLength / 60;
-        ctx.setLineDash([lastLineLength, 2000]);
-
+        ctx.setLineDash([lastLineLength, lastLineLength]);
 
         draw(moveArray[i].x, moveArray[i].y)
     }
 
-    // Draw the next move every second.
-    if (animatedFrames % 60 == 0) {
-        currentMove++;
+    // Stop animating once all lines have been drawn.
+    if (Math.abs(ctx.lineDashOffset + moveArray[0].distance).toFixed(1) == lastLineLength.toFixed(1)) {
+        console.log('done')
+        console.log(ctx.lineDashOffset)
+        return;
     }
 
-    animatedFrames++;
+    // Draw every line currently reached in the moveArray.
+    for (let i = 0; i <= currentMove; i++) {
+
+        if (i > moveArray.length - 1) break;
+        ctx.setLineDash([lastLineLength, lastLineLength]);
+
+        draw(moveArray[i].x, moveArray[i].y)
+    }
 
     // Animate a frame 60 times per second.
-
-
     setTimeout(animate, 1000 / 60);
-
-
 }
 
 animate();
+
+// const lastLineLength = moveArray[currentMove].distance;
+// ctx.setLineDash([lastLineLength, lastLineLength]);
+// ctx.lineDashOffset -= lastLineLength;
+// draw(moveArray[0].x, moveArray[0].y)
+
+
+
+// ctx.beginPath();
+// ctx.moveTo(canvas.width / 2, canvas.height / 2);
+// ctx.lineTo((canvas.width / 2)  + 200, (canvas.height / 2)  + 0);
+// ctx.lineTo((canvas.width / 2)  + 200, (canvas.height / 2)  - 200);
+// ctx.lineTo((canvas.width / 2)  + 0, (canvas.height / 2)  - 200);
+// ctx.lineTo((canvas.width / 2)  + 0, (canvas.height / 2)  - 0);
+// ctx.stroke();
