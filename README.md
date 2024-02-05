@@ -19,3 +19,9 @@ February 3rd, 2024
     Some shit came up that made me not particularly want to work on this for a few days. Back to the grind.
 
     The bitch can now draw one line from start to finish without overflowing or underflowing.
+
+February 4th, 2024
+
+    Good strides yesterday, gonna try to do about 3 hours of work today. As I said yesterday, hopefully today will be the last day.
+
+    Got a lot of shit done today. But I'm hungry and it sure as shit ain't done. Gonna get back to this later.
