@@ -25,3 +25,15 @@ February 4th, 2024
     Good strides yesterday, gonna try to do about 3 hours of work today. As I said yesterday, hopefully today will be the last day.
 
     Got a lot of shit done today. But I'm hungry and it sure as shit ain't done. Gonna get back to this later.
+
+February 5th, 2024
+
+    Obviously didn't finish yesterday lol. Gonna stop being hopeful and just put some work in.
+
+    I think I'm caught up organizing the code somewhat and fixing bugs. Time to add features.
+
+    Having issues getting the animation to play nice with moved lines without breaking the line dash offset. Tomorrow I guess.
+
+--To-Do--
+
+-Add a simple option to wiggle lines like all wavey like, or possibly in the style of animations where the lines are scribbly and swap between two renditions of the same frame

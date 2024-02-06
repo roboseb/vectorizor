@@ -1,3 +1,5 @@
+import animate from "./scripts/animate";
+
 // Initialize basic canvas.
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
@@ -10,18 +12,56 @@ ctx.lineCap = 'butt';
 
 let oldX = canvas.width / 2;
 let oldY = canvas.height / 2;
+let originX = canvas.width / 2;
+let originY = canvas.height / 2;
 
-let moveArray = [
-    { type: 'stroke', x: 30, y: 30, distance: null},
-    { type: 'stroke', x: 30, y: 200, distance: null},
-    { type: 'stroke', x: 400, y: 75, distance: null},
-];
+let moveArray =
+[
+    {
+        "type": "move",
+        "x": 148,
+        "y": 279,
+        "distance": 272.95512451683334
+    },
+    {
+        "type": "stroke",
+        "x": 575,
+        "y": 276,
+        "distance": 427.0105385116391
+    },
+    {
+        "type": "move",
+        "x": 157,
+        "y": 410,
+        "distance": 438.953300477397
+    },
+    {
+        "type": "stroke",
+        "x": 585,
+        "y": 394,
+        "distance": 428.2989610073786
+    },
+    {
+        "type": "move",
+        "x": 137,
+        "y": 539,
+        "distance": 470.88108902354526
+    },
+    {
+        "type": "stroke",
+        "x": 597,
+        "y": 536,
+        "distance": 460.00978250467676
+    }
+]
+;
 
-// let moveArray = [];
+//moveArray = [];
 
-const draw = (x, y) => {
+const draw = (x, y, type) => {
     ctx.moveTo(oldX, oldY);
-    ctx.lineTo(x, y);
+    if (type == 'stroke') ctx.lineTo(x, y);
+
 
     oldX = x;
     oldY = y;
@@ -39,138 +79,97 @@ const addMove = (type, x, y) => {
     moveArray.push(move);
 }
 
-// Draw a line on left click.
-canvas.addEventListener('click', event => {
-    lineProgress = 0;
-    currentMove = 0;
-    oldX = canvas.width / 2;
-    oldY = canvas.height / 2;
-    draw(event.clientX, event.clientY);
-    addMove('stroke', event.clientX, event.clientY);
-})
-
-// Set start point for next line on right click.
-canvas.addEventListener('contextmenu', event => {
-    event.preventDefault();
-    oldX = event.clientX;
-    oldY = event.clientY;
-})
-
-const animateBtn = document.getElementById('animate-btn');
-animateBtn.addEventListener('click', () => {
-    currentMove = 0;
+// Use math to find the length of each line.
+const calculateMoveDistances = () => {
 
     // Calculate the length of each line in the moveArray.
     moveArray.forEach((move, index) => {
         if (index == 0) {
-            move.distance = Math.hypot(move.x - oldX, move.y - oldY)
+            move.distance = Math.hypot(move.x - originX, move.y - originY)
         } else {
             move.distance = Math.hypot(move.x - moveArray[index - 1].x, move.y - moveArray[index - 1].y)
         }
     });
-
-    ctx.lineDashOffset = moveArray[0].distance * -1;
-    ctx.setLineDash([moveArray[0].distance, moveArray[0].distance]);
-    animate();
-
-    console.log(moveArray);
-});
+}
 
 let currentMove = 0;
 let lineProgress = 0;
 const lineSpeed = 15;
-
 let mode = 'draw';
 
-// Start running animation.
-const animate = () => {
-
-    // Stop animating if all moves have been shown.
-    if (currentMove > moveArray.length - 1) {
-        return;
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    oldX = canvas.width / 2;
-    oldY = canvas.height / 2;
-
-    // Add lineSpeed to the current line being drawn. If the amount
-    // left is less than lineSpeed, just add that.
-
-
-
-    let lineLeft = moveArray[currentMove].distance - lineProgress;
-    //console.log(lineLeft);
-
-    if (lineLeft < lineSpeed) {
-        ctx.lineDashOffset -= lineLeft;
-        lineProgress += lineSpeed;
-
-        lineLeft = 0;
-    } else {
-        //console.log('animating...')
-        ctx.lineDashOffset -= lineSpeed;
-        lineProgress += lineSpeed;
-
-    }
-
-    let totalLine = 0;
-
-    ctx.beginPath();
-    ctx.moveTo(oldX, oldY)
-
-    // Draw every move saved in the moveArray.
-    for (let i = 0; i <= currentMove; i++) {
-
-        if (i > moveArray.length - 1) break;
-
-        totalLine += moveArray[i].distance;
-
-        ctx.lineTo(moveArray[i].x, moveArray[i].y)
-    }
-
-    ctx.stroke();
-
-    // ctx.setLineDash([totalLine, totalLine]);
-
-    // Start animating the next move once a line is drawn.
-    if (lineLeft == 0) {
-        console.log('line done: ' + currentMove)
-        if (currentMove < moveArray.length - 1) {
-            lineProgress = 0;
-            ctx.setLineDash([totalLine + moveArray[currentMove + 1].distance, totalLine + moveArray[currentMove + 1].distance])
-            console.log(totalLine);
-            ctx.lineDashOffset -= moveArray[currentMove + 1].distance;
-        }
-        currentMove++;
-    }
-
-    // Animate a frame 60 times per second.
-    setTimeout(animate, 1000 / 60);
+// Switch to the given mode, and animate the display accordingly.
+const setMode = (newMode) => {
+    const modeDisplay = document.getElementById('mode');
+    modeDisplay.innerText = newMode;
+    mode = newMode;
 }
 
+// Show a visual guide of where the next line will be.
 const drawGuide = (x, y) => {
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     ctx.beginPath();
 
-    oldX = canvas.width / 2;
-    oldY = canvas.width / 2;
+    oldX = originX;
+    oldY = originY;
 
     moveArray.forEach(move => {
-        draw(move.x, move.y);
+        draw(move.x, move.y, move.type);
     })
 
     // ctx.beginPath();
     ctx.moveTo(oldX, oldY);
     ctx.lineTo(x, y);
     ctx.stroke();
-
-    
 }
+
+// Draw a line on left click.
+canvas.addEventListener('click', event => {
+    if (mode !== 'draw') return;
+    draw(event.clientX, event.clientY);
+    addMove('stroke', event.clientX, event.clientY);
+});
 
 // Animate effects for draw mode.
 document.addEventListener('mousemove', (event) => {
+    if (mode !== 'draw') return;
     drawGuide(event.clientX, event.clientY)
 });
+
+canvas.addEventListener('contextmenu', event => {
+    event.preventDefault();
+    addMove('move', event.clientX, event.clientY);
+})
+
+// Reset stored values and animate from the moveArray.
+const animateBtn = document.getElementById('animate-btn');
+animateBtn.addEventListener('click', () => {
+    if (mode == 'animate') return;
+
+    console.log(moveArray);
+
+    setMode('animate');
+    currentMove = 0;
+    lineProgress = 0;
+
+    calculateMoveDistances();
+
+    ctx.lineDashOffset = moveArray[0].distance * -1;
+    ctx.setLineDash([moveArray[0].distance, moveArray[0].distance]);
+    animate(canvas, ctx, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode);
+});
+
+const test = () => {
+    if (mode == 'animate') return;
+
+    setMode('animate');
+    currentMove = 0;
+    lineProgress = 0;
+
+    calculateMoveDistances();
+
+    ctx.lineDashOffset = moveArray[0].distance * -1;
+    ctx.setLineDash([moveArray[0].distance, moveArray[0].distance]);
+    animate(canvas, ctx, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode);
+}
+
+test();
