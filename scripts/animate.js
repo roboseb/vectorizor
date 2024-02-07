@@ -1,66 +1,73 @@
-// Start running animation.
-const animate = (canvas, ctx, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode) => {
+// Animate through all lines in moveArray.
+const animate = (draw, canvas, ctx, oldX, oldY, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode, calculateMoveDistances) => {
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // If all moves have been drawn, reset and go to draw mode.
+    if (currentMove >= moveArray.length) {
+        currentMove = 0;
+        lineProgress = 0;
+        setMode('draw');
+        return;
+    };
 
-    // Add lineSpeed to the current line being drawn. If the amount
-    // left is less than lineSpeed, just add that.
+    setMode('animate');
+    calculateMoveDistances();
+    ctx.strokeStyle = 'black';
+
     let lineLeft = moveArray[currentMove].distance - lineProgress;
 
-    if (lineLeft < lineSpeed) {
+    // Update line speed based on bezier curve options.
+    // The following code adds a nice bezier curve to the animation. I'm not 100% sure why. I am not really a math guy.
+    const distToCenter = Math.abs(lineProgress - Math.abs(moveArray[currentMove].distance / 2));
+    const percentToCenter = distToCenter / moveArray[currentMove].distance * 200;
+    const newLineSpeed = lineSpeed * (1.01 - (percentToCenter / 100));
+
+    // Progress the line being drawn by either lineSpeed or the last bit of the line.
+    if (lineLeft < newLineSpeed) {
         ctx.lineDashOffset -= lineLeft;
-        lineProgress += lineSpeed;
+        lineProgress += newLineSpeed;
         lineLeft = 0;
-
-        console.log('next lin')
+        lineProgress = 0;
     } else {
-        ctx.lineDashOffset -= lineSpeed;
-        lineProgress += lineSpeed;
+        lineProgress += newLineSpeed;
+        ctx.lineDashOffset = moveArray[currentMove].distance - lineProgress;
     }
 
 
-    console.log(lineLeft)
 
-    let totalLine = 0;
+    if (moveArray[currentMove].type !== 'stroke') {
+        lineLeft = 0;
+    }
 
-    ctx.beginPath();
-    ctx.moveTo(originX, originY);
-    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw every move saved in the moveArray.
+    oldX = originX;
+    oldY = originY;
+
+    // Iterate through all moves and draw them.
     for (let i = 0; i <= currentMove; i++) {
-        if (i > moveArray.length - 1) break;
+        if (i > moveArray.length) break;
 
-        
+        if (i < currentMove) {
+            ctx.setLineDash([0, 0])
 
-        ctx.lineTo(moveArray[i].x, moveArray[i].y);
+        } else {
+            ctx.setLineDash([moveArray[i].distance, moveArray[i].distance])
+        }
 
-        
-        
-
-        totalLine += moveArray[i].distance;
+        ctx.beginPath();
+        draw(moveArray[i].x, moveArray[i].y, moveArray[i].type, i);
+        ctx.stroke();
     }
 
-    ctx.stroke();
-
-    // Start animating the next move once a line is drawn.
+    // If current line is fully drawn, progress to the next.
     if (lineLeft == 0) {
-        if (currentMove < moveArray.length - 1) {
-            lineProgress = 0;
-            ctx.setLineDash([totalLine + moveArray[currentMove + 1].distance, totalLine + moveArray[currentMove + 1].distance]);
-            ctx.lineDashOffset -= moveArray[currentMove + 1].distance;
-        }
         currentMove++;
     }
 
-    // Animate a frame 60 times per second, unless the animation is complete.
-    if (!(currentMove > moveArray.length - 1)) {
-        setTimeout(() => {
-            animate(canvas, ctx, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode)
-        }, 1000 / 60);
-    } else {
-        setMode('draw');
-    }
+    // Animate a new frame 60 times per second.
+    setTimeout(() => {
+        animate(draw, canvas, ctx, oldX, oldY, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode, calculateMoveDistances);
+    }, 1000 / 60)
 }
 
 export default animate;

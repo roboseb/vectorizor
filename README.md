@@ -34,6 +34,17 @@ February 5th, 2024
 
     Having issues getting the animation to play nice with moved lines without breaking the line dash offset. Tomorrow I guess.
 
+February 6th, 2024
+
+    Back to work. Been stuck on the same bug since yesterday. Hopefully I can get that sorted by today.
+
+    I hated the way my animate function looked an it wasn't working, so I took some time to rewrite it. And now it works. The issue I was having wasn't a simple one, but it works now.
+
 --To-Do--
 
 -Add a simple option to wiggle lines like all wavey like, or possibly in the style of animations where the lines are scribbly and swap between two renditions of the same frame
+-Button to clear drawing
+-button to save drawings/UI for that
+-close shapes with key press ie: easy squares or other polygons
+-bezier curve animation speed
+-snap to other points

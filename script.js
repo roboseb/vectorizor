@@ -16,52 +16,35 @@ let originX = canvas.width / 2;
 let originY = canvas.height / 2;
 
 let moveArray =
-[
-    {
-        "type": "move",
-        "x": 148,
-        "y": 279,
-        "distance": 272.95512451683334
-    },
-    {
-        "type": "stroke",
-        "x": 575,
-        "y": 276,
-        "distance": 427.0105385116391
-    },
-    {
-        "type": "move",
-        "x": 157,
-        "y": 410,
-        "distance": 438.953300477397
-    },
-    {
-        "type": "stroke",
-        "x": 585,
-        "y": 394,
-        "distance": 428.2989610073786
-    },
-    {
-        "type": "move",
-        "x": 137,
-        "y": 539,
-        "distance": 470.88108902354526
-    },
-    {
-        "type": "stroke",
-        "x": 597,
-        "y": 536,
-        "distance": 460.00978250467676
-    }
-]
-;
+    [
+        {
+            "type": "stroke",
+            "x": 60,
+            "y": 279,
+            "distance": null
+        },
+        {
+            "type": "move",
+            "x": 575,
+            "y": 276,
+            "distance": null
+        },
+        {
+            "type": "stroke",
+            "x": 157,
+            "y": 410,
+            "distance": null
+        },
+    ]
+    ;
 
 //moveArray = [];
 
-const draw = (x, y, type) => {
-    ctx.moveTo(oldX, oldY);
-    if (type == 'stroke') ctx.lineTo(x, y);
+const draw = (x, y, type, i) => {
 
+    ctx.moveTo(oldX, oldY);
+    if (i == 0) ctx.moveTo(originX, originY)
+    if (type == 'stroke') ctx.lineTo(x, y);
 
     oldX = x;
     oldY = y;
@@ -94,7 +77,7 @@ const calculateMoveDistances = () => {
 
 let currentMove = 0;
 let lineProgress = 0;
-const lineSpeed = 15;
+let lineSpeed = 105;
 let mode = 'draw';
 
 // Switch to the given mode, and animate the display accordingly.
@@ -111,12 +94,18 @@ const drawGuide = (x, y) => {
 
     oldX = originX;
     oldY = originY;
+    ctx.strokeStyle = 'black';
+    ctx.setLineDash([0, 0]);
 
     moveArray.forEach(move => {
         draw(move.x, move.y, move.type);
-    })
+    });
+    ctx.stroke();
 
-    // ctx.beginPath();
+    // Draw a line from the last point to the cursor.
+    ctx.beginPath();
+    ctx.strokeStyle = 'lightgrey';
+    ctx.setLineDash([20, 20]);
     ctx.moveTo(oldX, oldY);
     ctx.lineTo(x, y);
     ctx.stroke();
@@ -127,6 +116,7 @@ canvas.addEventListener('click', event => {
     if (mode !== 'draw') return;
     draw(event.clientX, event.clientY);
     addMove('stroke', event.clientX, event.clientY);
+    drawGuide(event.clientX, event.clientY)
 });
 
 // Animate effects for draw mode.
@@ -137,39 +127,31 @@ document.addEventListener('mousemove', (event) => {
 
 canvas.addEventListener('contextmenu', event => {
     event.preventDefault();
+    if (mode !== 'draw') return;
     addMove('move', event.clientX, event.clientY);
 })
 
 // Reset stored values and animate from the moveArray.
 const animateBtn = document.getElementById('animate-btn');
 animateBtn.addEventListener('click', () => {
-    if (mode == 'animate') return;
-
-    console.log(moveArray);
-
-    setMode('animate');
-    currentMove = 0;
-    lineProgress = 0;
-
-    calculateMoveDistances();
-
-    ctx.lineDashOffset = moveArray[0].distance * -1;
-    ctx.setLineDash([moveArray[0].distance, moveArray[0].distance]);
-    animate(canvas, ctx, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode);
+    // ctx.lineDashOffset = moveArray[0].distance * -1;
+    // ctx.setLineDash([moveArray[0].distance, moveArray[0].distance]);
+    if (mode !== 'draw') return;
+    animate(draw, canvas, ctx, oldX, oldY, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode, calculateMoveDistances);
 });
 
-const test = () => {
-    if (mode == 'animate') return;
+// Clear the moveArray and everything on screen.
+const clearBtn = document.getElementById('clear-btn');
+clearBtn.addEventListener('click', () => {
+    if (mode !== 'draw') return;
+    console.log('clearing...');
+    moveArray = [];
+});
 
-    setMode('animate');
-    currentMove = 0;
-    lineProgress = 0;
+const speedInput = document.getElementById('speed-input');
+speedInput.addEventListener('input', () => {
+    if (mode !== 'draw') return;
+    lineSpeed = speedInput.value;
+});
 
-    calculateMoveDistances();
-
-    ctx.lineDashOffset = moveArray[0].distance * -1;
-    ctx.setLineDash([moveArray[0].distance, moveArray[0].distance]);
-    animate(canvas, ctx, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode);
-}
-
-test();
+animate(draw, canvas, ctx, oldX, oldY, originX, originY, moveArray, currentMove, lineProgress, lineSpeed, setMode, calculateMoveDistances);
